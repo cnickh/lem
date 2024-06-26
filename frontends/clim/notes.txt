@@ -1,0 +1,242 @@
+@author Nick Henry
+
+Some note from Mcclim documentation I found helpful. Skipping a lot of things I
+currently don't see a use for (implementing a lem frontend). 
+
+
+
+3 - regions
+;;make-point  	x y
+;;make-line  	start-point end-point
+;;make-rectangle  	point1 point2
+;;make-polyline  	point-seq &key closed
+;;make-polygon  	point-seq
+
+4 - bounding rectangle
+;;make-bounding-rectangle  	x1 y1 x2 y2
+
+5
+;;make-translation-transformation  	translation-x translation-y
+;;make-rotation-transformation  	angle &optional origin
+;;make-scaling-transformation  	scale-x scale-y &optional origin
+;;make-reflection-transformation  	point1 point2
+;;make-transformation  	mxx mxy myx myy tx ty	 
+Returns a general transformation whose effect is: 
+x′ = 	mxxx + mxyy + tx
+y′ = 	myxx + myyy + ty
+
+;;transform-region  	transformation region
+;;untransform-region  	transformation region
+;;transform-position  	transformation x y
+
+6  - Window 
+hierarchies of interactive regions
+
+7 - Sheets
+Sheets have the following properties
+	A coordinate system     
+	A region
+	Children   
+	A transformation
+	An enabled flag
+	An event handler
+	Output state
+	
+A sheet is a participant in a number of protocols.
+	The windowing protocol
+	The input protocol
+	The output protocol
+	The repaint protocol
+	The notificaiton protocol
+
+8 - Sheet protocols
+Input is processed on a per-port basis by the function 'process-next-event'. In multiprocessing environments, a process that calls 'process-next-event' in a loop is created for each port. In single-process Lisps, 'process-next-event' is called whenever the user would go blocked for input. 
+
+Input events can be broadly categorized into pointer events and keyboard events. By default, pointer events are dispatched to the lowest sheet in the hierarchy whose region contains the location of the pointer. Keyboard events are dispatched to the port's keyboard input focus; the accessor port-keyboard-input-focus contains the event client that receives the port's keyboard events. 
+
+INPUT
+
+8.1 - Generic Functions
+
+;;sheet-event-queue  	sheet
+;;process-next-event  	port &key wait-function timeout
+;;port-keyboard-input-focus  	port
+;;dispatch-event  	client event
+;;queue-event  	client event
+;;handle-event  client event
+
+8.2 - Events
+	device-event
+		keyboard-event
+			key-press-event
+			key-release-event
+		pointer-event
+			pointer-button-event
+			pointer-button-press-event
+			pointer-button-release-event
+			pointer-button-hold-event
+			pointer-motion-event
+			pointer-boundary-event
+			pointer-enter-event
+			pointer-exit-event
+	window-event
+		window-configuration-event
+		window-repaint-event
+		window-manager-event
+		window-manager-delete--event
+	timer-event
+
+
+OUTPUT
+
+8.3 - Medium
+
+;;medium-foreground  	medium	 
+;;(setf medium-foreground)  	design medium
+
+;;medium-background  	medium	 
+;;(setf medium-background)  	design medium
+
+;;medium-ink  	medium	 
+;;(setf medium-ink)  	design medium
+
+;;medium-line-style  	medium	 
+;;(setf medium-line-style)  	line-style medium
+
+;;medium-text-style  	medium	 
+;;(setf medium-text-style)  	text-style medium
+
+Before a sheet may be used for output, it must be associated with a medium. Some sheets are permanently associated with media for output efficiency; for example, CLIM window stream sheets have a medium that is permanently allocated to the window.
+
+;;with-sheet-medium  	(medium sheet) &body body 
+bind a sheet's medium to medium
+
+;;with-sheet-medium-bound  	(sheet medium) &body body
+bind a medium to a sheet
+
+;;sheet-medium  	sheet
+
+;;medium-sheet  	medium
+
+;;port  	(medium basic-medium)
+
+8.4 - Repaint
+
+;;handle-repaint  	sheet region
+;;repaint-sheet  	sheet region
+
+9 - Ports & Graft & Mirroring Sheets
+
+10 - Medium objects contain components that correspond to the drawing options
+
+;;with-drawing-options  	(medium &rest drawing-options) &body body
+Binds the state of the medium designated by medium to correspond to the supplied drawing options, and executes the body
+
+drawing-options
+;; :ink
+;; :transformation
+;; :clipping-region
+;; :line-style
+;; :text-style
+
+Line-Styles
+:line-unit
+Gives the unit used for measuring line thickness and dash pattern length for the line style. Possible values are :normal, :point, or :coordinate. 
+:line-thickness  	
+:line-joint-shape  	
+etc
+
+11 - Text Styles
+
+;;make-text-style  	family face size
+
+:text-family
+:text-face
+:text-size
+
+;;make-device-font-text-style  	display-device device-font-name
+
+12 - Graphics Definitions
+
+Drawing plane.
+A drawing plane is an infinite two-dimensional plane on which graphical output occurs. The drawing plane contains an arrangement of colors and opacities that is modified by each graphical output operation. It is not possible to read back the contents of a drawing plane, except by examining the output-history. Normally each window has its own drawing plane.
+
+Coordinates.
+Coordinates are a pair of real numbers in implementation-defined units that identify a point in the drawing plane.
+
+Sheets and Mediums.
+In this chapter, we use a medium as a destination for output.
+
+*A stream is a special kind of sheet that implements the stream protocol; streams include additional state such as the current text cursor (which is some point in the drawing plane).
+
+
+12.5 - Basic Drawing Functions
+
+;;draw-point  	medium point &key ink clipping-region transformation line-style line-thickness line-unit
+
+;;draw-points  	medium points &key ink clipping-region transformation line-style line-thickness line-unit
+
+;;draw-line  	medium point1 point2 &key ink clipping-region transformation line-style line-thickness line-unit line-dashes line-cap-shape
+
+;;draw-lines  	medium points &key ink clipping-region transformation line-style line-thickness line-unit line-dashes line-cap-shape
+
+;;draw-polygon  	medium point-seq &key (filled t) (closed t) ink clipping-region transformation line-style line-thickness line-unit line-dashes line-joint-shape line-cap-shape
+
+;;draw-rectangle  	medium point1 point2 &key (filled t) ink clipping-region transformation line-style line-thickness line-unit line-dashes line-joint-shaep
+
+;;draw-rectangles  	medium points &key ink clipping-region transformation line-style line-thickness line-unit line-dashes line-joint-shape
+
+;;draw-text  	medium string-or-char point &key text-style (start 0) end (align-x :left) (align-y :baseline) toward-point transform-glyphs ink clipping-region transformation text-style text-family text-face text-size
+
+12.6 - Pixmaps
+A pixmap can be thought of as an "off-screen window", that is, a medium that can be used for graphical output, but is not visible on any display device. Pixmaps are provided to allow a programmer to generate a piece of output associated with some display device that can then be rapidly drawn on a real display device.
+
+13 - Color
+The :ink Drawing Option
+
+The :ink drawing option, used with the drawing functions described in Chapter 12, can take as its value:
+
+    a color,
+    an opacity or the constant +transparent-ink+,
+    the constant +foreground-ink+, 
+    the constant +background-ink+, 
+    a flipping ink
+	More exactly, an ink can be any member of the class design.
+    
+13.2 - Design
+A design is an object that represents a way of arranging colors and opacities in the drawing plane. The fundamental operation of the CLIM graphic drawing model is to draw a design onto a drawing plane, thus drawing is always controlled by designs.
+
+;;make-rgb-color  	red green blue
+The red, green, and blue arguments are real numbers between 0 and 1 (inclusive) that specify the values of the corresponding color components.
+
+;;make-ihs-color  	intensity hue saturation
+;;make-gray-color  	luminance
+
+;;make-opacity  	value
+Returns a member of class opacity whose opacity is value, which is a real number in the range from 0 to 1
+
+14 - General Design 
+regions are also designs.
+A design is a unification of both a shape and a color and opacity.
+
+Composing 
+;;compose-over  	design1 design2
+;;compose-in  	ink mask
+;;compose-out  	ink mask
+
+14.2 - Patterns and Stencils
+
+;;make-pattern  	array designs
+Returns a pattern design that has (array-dimension array 0) cells in the vertical direction and (array-dimension array 1) cells in the horizontal direction. array must be a two-dimensional array of non-negative integers less than the length of designs. designs must be a sequence of designs. The design in cell (i,j) of the resulting pattern is the nth element of designs, if n is the value of (aref array i j). For example, array can be a bit-array and designs can be a list of two designs, the design drawn for 0 and the one drawn for 1.
+
+;;make-stencil  	array
+Returns a pattern design that has (array-dimension array 0) cells in the vertical direction and (array-dimension array 1) cells in the horizontal direction. array must be a two-dimensional array of real numbers between 0 and 1 (inclusive) that represent opacities. The design in cell (i,j) of the resulting pattern is the value of (make-opacity (aref array i j)).
+
+;;make-rectangular-tile  	design width height          	
+Returns a design that, when used as an ink, tiles a rectangular portion of the design design across the entire drawing plane. The resulting design repeats with a period of width horizontally and height vertically. width and height must both be integers. The portion of design that appears in each tile is a rectangle whose top-left corner is at (0,0) and whose bottom-right corner is at (width,height). The repetition of design is accomplished by applying a coordinate transformation to shift design into position for each tile, and then extracting a width by height portion of that design.
+
+14.5 Arbitrary Designs
+
+;;draw-design  	medium design &key ink clipping-region transformation line-style line-thickness line-unit line-dashes line-joint-shape line-cap-shape text-style text-family text-face text-size
+
+;;draw-pattern*  	medium pattern x y &key clipping-region transformation

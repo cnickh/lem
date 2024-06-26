@@ -51,6 +51,7 @@ Options:
 
 (let ((once nil))
   (defun setup ()
+    (log:info "inside setup")
     (setup-first-frame)
     (unless once
       (setf once t)
@@ -222,6 +223,8 @@ See scripts/build-ncurses.lisp or scripts/build-sdl2.lisp"
   (apply-args args))
 
 (defun run-editor-thread (initialize args finalize)
+  (format t "editor thread ~%")
+  ;;(declare (optimize (debug 3)))
   (bt:make-thread
    (lambda ()
      (when initialize (funcall initialize))
@@ -231,7 +234,9 @@ See scripts/build-ncurses.lisp or scripts/build-sdl2.lisp"
               (with-timer-manager (make-instance 'lem-timer-manager)
                 (setf *in-the-editor* t)
                 (setup)
+                (log:info "setup complete")
                 (let ((report (toplevel-command-loop (lambda () (init args)))))
+                  (log:info "past command-loop :/")
                   (when finalize (funcall finalize report))
                   (teardown)))))
        (setf *in-the-editor* nil)))
@@ -243,7 +248,7 @@ See scripts/build-ncurses.lisp or scripts/build-sdl2.lisp"
         :key #'bt:thread-name))
 
 (defun lem (&rest args)
-
+  (format t "lem() called ~%")
   ;; for sbcl, set the default file encoding to utf-8
   ;; (on windows, the default is determined by code page (e.g. :cp932))
   #+sbcl
@@ -260,10 +265,10 @@ See scripts/build-ncurses.lisp or scripts/build-sdl2.lisp"
              (if (command-line-arguments-debug args)
                  :debug
                  :info))))
-    (t (log:config :off)))
+    (t (log:config :debug)))
 
   (log:info "Starting Lem")
-
+ 
   (cond (*in-the-editor*
          (apply-args args))
         (t
@@ -275,15 +280,24 @@ See scripts/build-ncurses.lisp or scripts/build-sdl2.lisp"
                      (if (interactive-stream-p *standard-input*)
                          :ncurses
                          :sdl2)))))
+           
+           (format t "have implementation ~a~%" implementation)
+
            (unless implementation
              (maybe-load-systems :lem-ncurses)
              (setf implementation (get-default-implementation)))
+
+           (format t "calling invoke~%")
            (invoke-frontend
             (lambda (&optional initialize finalize)
               (run-editor-thread initialize args finalize))
-            :implementation implementation)))))
+            :implementation implementation)
+           
+           ))))
 
 (defun main (&optional (args (uiop:command-line-arguments)))
+  (declare (optimize (debug 3)))
+  (format t "calling main~%")
   (apply #'lem args))
 
 #+sbcl

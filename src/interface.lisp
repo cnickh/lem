@@ -174,5 +174,6 @@
 
 (defun invoke-frontend (function &key (implementation
                                        (get-default-implementation)))
+  (format t "invoking implementation ~a ~%" implementation)
   (setf *implementation* implementation)
   (lem-if:invoke implementation function))

@@ -31,7 +31,7 @@
   lines)
 
 (defun get-displayed-text (&optional (window (current-window)))
-  (let ((lines (view-lines (screen-view (window-screen window)))))
+  (let ((lines (view-lines (window-view window))))
     (with-output-to-string (out)
       (loop :for line :across lines
             :for line-string := (string-right-trim (string (code-char 0)) line)
