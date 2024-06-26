@@ -4,6 +4,7 @@
 (defvar *exit-editor-hook* '())
 
 (defun bailout (condition)
+  (log:warn "bailout triggered")
   (signal 'exit-editor
           :report (with-output-to-string (stream)
                     (princ condition stream)
@@ -120,6 +121,7 @@
   *command-loop-counter*)
 
 (defun command-loop ()
+  (log:info "entering command-loop")
   (do-command-loop (:interactive t)
     (incf *command-loop-counter*)
     (if (toplevel-command-loop-p)

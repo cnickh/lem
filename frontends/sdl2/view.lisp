@@ -1,6 +1,5 @@
 (defpackage :lem-sdl2/view
   (:use :cl)
-  (:local-nicknames (:display :lem-sdl2/display))
   (:export
    :set-cursor-position
    :last-cursor-x
@@ -19,7 +18,8 @@
    :view-width
    :view-height
    :view-use-modeline
-   :view-texture))
+   :view-texture)
+  (:local-nicknames (:display :lem-sdl2/display)))
 (in-package :lem-sdl2/view)
 
 (defclass view ()
