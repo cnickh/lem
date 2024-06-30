@@ -158,9 +158,9 @@
 	 :with height := (nth 3 line)
 	 :for object :in (nth 2 line)
 	 :do (progn
-;;	       (log:info
-;;		"(draw-object ~a) (obj:object-height):~a  @ current-x:~a y:~a ~%"
-;;                (obj:object-text object) (obj:object-height object pane) current-x (+ y height))
+	       (log:info
+		"(draw-object ~a) @ current-x:~a y:~a ~%"
+                (obj:object-text object) current-x (+ y height))
 		   
 	       (incf
 		current-x
