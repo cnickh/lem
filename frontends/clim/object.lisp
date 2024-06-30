@@ -85,17 +85,7 @@
 
 (defmethod object-width ((drawing-object text-object) medium)
   (let ((width (text-size medium (text-object-string drawing-object))))
-    (if (= -1 width)
-        0
-        width)))
-  ;;(multiple-value-bind
-  ;;        (width height final-x final-y baseline) 
-  ;;      (text-size medium (text-object-string drawing-object)) 
-  ;;    (declare (ignore final-x)
-  ;;             (ignore final-y)
-  ;;             (ignore baseline)
-  ;;             (ignore height))
-  ;;    width)) ;;Surface width
+    (if (> 0 width) 0 width)))
 
 (defmethod object-width ((drawing-object icon-object)  medium)
   0) ;;Surface width

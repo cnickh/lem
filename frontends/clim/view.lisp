@@ -54,7 +54,7 @@
   (setf (view-last-cursor-x buffer-view) x
         (view-last-cursor-y buffer-view) y))
 
-(defmethod last-cursor-x (buffer-view  medium)
+(defmethod last-cursor-x (buffer-view medium)
   (or (view-last-cursor-x buffer-view)
       (* (lem:last-print-cursor-x (view-window buffer-view))
          (text-width medium))))
@@ -97,7 +97,6 @@
           collect (cons (cadr line) (loop for object in (nth 2 line)
                                           collect (obj:object-text object))))))
 
-
 (defmethod update-line (buffer-view x y objects height)
   (replace-add-if 
    (list x y objects height)
@@ -124,25 +123,17 @@
    :filled t))
 
 (defun draw-modeline (buffer-view modeline pane)
-
-  ;;(declare (ignore buffer-view))
-  
   (let ((x0 (view-x buffer-view))
 	(x1 (+ (view-x buffer-view) (* (view-width buffer-view) (text-width pane))))
-        (y (+ (view-y buffer-view) (* (view-height buffer-view) (text-height pane)))))
+        (y (* (+ (view-y buffer-view) (view-height buffer-view)) (text-height pane))))
 
     (loop for object in (car modeline) ;;draw left objects
-             do (incf
-              x0
-              (obj:draw-object object x0 y pane buffer-view)))
+             do (incf x0
+                      (obj:draw-object object x0 y pane buffer-view)))
 
-    
     (loop for object in (cadr modeline) ;;draw right objects
-	  do (incf
-           x1
-           (- (obj:draw-object object (- x1 (obj:object-width object pane)) y pane buffer-view))))
-    
-    ))
+	  do (incf x1
+                   (- (obj:draw-object object (- x1 (obj:object-width object pane)) y pane buffer-view))))))
 
 ;;(push (list x y objects height) (view-lines buffer-view))
 (defun draw-view-lines (buffer-view pane)
@@ -169,11 +160,7 @@
 
 (defmethod draw-view (buffer-view pane)
 ;;  (log:info "Drawing view[~a] x: ~a y: ~a height: ~a width: ~a ~%~%" 
-;;	    buffer-view
-;;	    (view-x buffer-view) 
-;;            (view-y buffer-view)
-;;            (view-height buffer-view)
-;;            (view-width buffer-view))
+;;	    buffer-view (view-x buffer-view) (view-y buffer-view) (view-height buffer-view) (view-width buffer-view))
     
   (let* ((x0 (* (view-x buffer-view) (text-width pane)))
          (y0 (* (view-y buffer-view) (text-height pane)))
@@ -182,26 +169,15 @@
 	 (modeline (view-modeline buffer-view)))
 
     (log:info "view @ ~a computed dimen x:~a y:~a width:~a height:~a" 
-              buffer-view
-              x0
-              y0
-              x1
-              y1)
+              buffer-view x0 y0 x1 y1)
     
-    ;;(declare (ignore modeline))
-    ;;(if modeline
-    ;;    (draw-modeline buffer-view modeline pane))
+    (if modeline
+        (draw-modeline buffer-view modeline pane))
     
     (draw-rectangle 
-     pane
-     (make-point x0 y0)
-     (make-point x1 y1)
-     :filled nil
-     :line-thickness 1)
+     pane (make-point x0 y0) (make-point x1 y1) :filled nil :line-thickness 1)
     
-    ;;(log:info "have line :: ~a ~%" (view-lines buffer-view))
-    (draw-view-lines buffer-view pane)
-    ))
+    (draw-view-lines buffer-view pane)))
 
 
 
