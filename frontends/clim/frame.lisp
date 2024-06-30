@@ -61,13 +61,13 @@
     ;;:icon (&key name pixmap clippingmaks) 
     :display-function 'compose-display)))
 
-(defmethod stream-read-gesture :around ((stream lem-stream-pane)
-                                        &key &allow-other-keys)
-  (let* ((results (multiple-value-list (call-next-method)))
-         (gesture (car results)))
-    (when gesture
-      (input:send-lem gesture stream))
-    (values-list results)))
+;;(defmethod stream-read-gesture :around ((stream lem-stream-pane)
+;;                                        &key &allow-other-keys)
+;;  (let* ((results (multiple-value-list (call-next-method)))
+;;         (gesture (car results)))
+;;    (when gesture
+;;      (input:send-lem gesture stream))
+;;    (values-list results)))
 
 (defmethod handle-event :around ((stream lem-stream-pane) event)
   (input:send-lem event stream)
@@ -75,7 +75,7 @@
 
 
 (defun compose-display (frame pane)
-    (log:info "composing pane -- ~% have views ~a~%" (views frame))
+    ;;(log:info "composing pane -- ~% have views ~a~%" (length (views frame)))
 
   ;;loop through views detect change & update
   (loop for view in (views frame) 

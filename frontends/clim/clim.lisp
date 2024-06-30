@@ -58,7 +58,7 @@
   ;;(loop while (not (display-pane)) 
   ;;      do (format t "Have pane: ~a ~%" (display-pane)))
 
-
+  (log:info "have text-height == ~a ~%" (text-height (display-pane)))
   (setf (frame:display-char-width +app-frame+)
 	(floor (frame:display-width +app-frame+) (text-width (display-pane))))
   (setf (frame:display-char-height +app-frame+)
@@ -116,30 +116,31 @@
 (defmethod lem-if:make-view 
     ((implementation clim) window x y width height use-modeline)
 
-  (log:info "(create-view ~a ~a ~a ~a ~a ~a) ~%"
-	    window x y width height use-modeline)
-
-  (let ((new-view
+ (let ((new-view
 	(view:create-view window x y width height use-modeline)))
     (push new-view (current-views))
+   (log:info "(create-view ~a ~a ~a ~a ~a ~a) for ~a ~% Have views: [~a]"
+             new-view x y width height use-modeline window (current-views))
     new-view))
 
 (defmethod lem-if:delete-view ((implementation clim) view)
-  (remove-if (lambda (v) (equal view v)) (current-views)))
+  (log:info "delete ~a from ~a ~%" view (current-views))
+  (delete-if (lambda (v) (equal view v)) (current-views)))
 
 (defmethod lem-if:clear ((implementation clim) view)
   nil)
 
 (defmethod lem-if:set-view-size ((implementation clim) view width height)
+  (log:info "@~a (set-view-size ~a ~a) ~%"  view width height)
   (view:resize view width height))
 
 (defmethod lem-if:set-view-pos ((implementation clim) view x y)
+  (log:info "@~a (set-view-pos ~a ~a) ~%"  view x y)
   (view:move-position view x y))
 
 (defmethod lem-if:update-display ((implementation clim))
-  (log:info "update-display called ~%")
-  ;;(execute-frame-command +app-frame+ (cons 'com-redisplay ()))
-  (redisplay-frame-panes +app-frame+)
+  ;;(log:info "update-display called ~%")
+  (redisplay-frame-panes +app-frame+ :force-p t)
   t)
 
 (defmethod lem-if:view-width ((implementation clim) view)
@@ -157,7 +158,7 @@
   ;;1)
 
 (defmethod lem-if:render-line ((implementation clim) view x y objects height)
-  (log:info "(render-line ~a ~a ~a ~a ~a) ~%" view x y objects height)
+  ;;(log:info "(render-line ~a ~a ~a ~a ~a) ~%" view x y objects height)
   (view:update-line view x y objects height))
 
 (defmethod lem-if:clear-to-end-of-window ((implementation clim) view y)
@@ -165,11 +166,9 @@
 
 (defmethod lem-if:get-char-width ((implementation clim))
   (text-width (display-pane)))
-  ;;1)
 
 (defmethod lem-if:get-char-height ((implementation clim))
   (text-height (display-pane)))
-  ;;1)
 
 (defun read-text-objects (objects)
   (loop for object in objects
@@ -177,12 +176,13 @@
 
 (defun display-modeline-helper
     (view left-objects right-objects default-attribute height)
-  (log:info
-   "(display-modeline ~a ~a ~a) right ~a left ~a"
-   view
-   default-attribute height
-   (read-text-objects right-objects)
-   (read-text-objects left-objects)))
+  ;;(log:info
+  ;; "(display-modeline ~a ~a ~a) right ~a left ~a"
+  ;; view
+  ;; default-attribute height
+  ;; (read-text-objects right-objects)
+  ;; (read-text-objects left-objects))
+  )
 
 (defmethod lem-if:render-line-on-modeline
     ((implementation clim) view left-objects right-objects default-attribute

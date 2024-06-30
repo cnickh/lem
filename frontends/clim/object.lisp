@@ -84,14 +84,18 @@
   (* 2 (text-width medium)))
 
 (defmethod object-width ((drawing-object text-object) medium)
-  (multiple-value-bind
-          (width height final-x final-y baseline) 
-        (text-size medium (text-object-string drawing-object)) 
-      (declare (ignore final-x)
-               (ignore final-y)
-               (ignore baseline)
-               (ignore height))
-      width)) ;;Surface width
+  (let ((width (text-size medium (text-object-string drawing-object))))
+    (if (= -1 width)
+        0
+        width)))
+  ;;(multiple-value-bind
+  ;;        (width height final-x final-y baseline) 
+  ;;      (text-size medium (text-object-string drawing-object)) 
+  ;;    (declare (ignore final-x)
+  ;;             (ignore final-y)
+  ;;             (ignore baseline)
+  ;;             (ignore height))
+  ;;    width)) ;;Surface width
 
 (defmethod object-width ((drawing-object icon-object)  medium)
   0) ;;Surface width
@@ -119,44 +123,37 @@
 (defmethod draw-object ((drawing-object text-object) x bottom-y medium view)
   (let* ((text (text-object-string drawing-object))
         (attribute (text-object-attribute drawing-object))
+        (width (object-width drawing-object medium))
         ;;(type (text-object-type drawing-object))
         ;;(foreground (lem-core:attribute-foreground-with-reverse attribute))
         )
-    (log:info "drawing text-object with text ~a ~%" text)
-    (multiple-value-bind 
-          (width height final-x final-y baseline) 
-        (text-size medium text)
-      (declare (ignore final-x)
-               (ignore final-y)
-               (ignore baseline)
-               (ignore height))
-      (when (and attribute (lem-core:cursor-attribute-p attribute))
-        ;;(view:set-cursor-position view x bottom-y)
-        ())
+    ;;color
+    ;; (lem:color-red foreground)
+    ;; (lem:color-green foreground)
+    ;; (lem:color-blue foreground)
+    ;;bold (lem:attribute-bold attribute)
 
-      (draw-text
+    (when (and attribute (lem-core:cursor-attribute-p attribute))
+      ;;(view:set-cursor-position view x bottom-y)
+      ())
+
+    (draw-text
+     medium
+     text
+     (make-point x bottom-y) :align-y :bottom)
+
+    (when (and attribute
+               (lem:attribute-underline attribute))
+      (draw-line 
        medium
-       text
-       (make-point x bottom-y))
-
-      (when (and attribute
-                 (lem:attribute-underline attribute))
-        (draw-line 
-         medium
-         (make-point x bottom-y)
-         (make-point (+ x width) bottom-y)
-         :ink (let ((underline (lem:attribute-underline attribute)))
-                (if (eq underline t)
-                    (lem-core:attribute-foreground-color attribute)
-                    (or (lem:parse-color underline)
-                        (lem-core:attribute-foreground-color attribute))))))
-        width))
-;;color
-   ;; (lem:color-red foreground)
-   ;; (lem:color-green foreground)
-   ;; (lem:color-blue foreground)
-;;bold (lem:attribute-bold attribute)
-)
+       (make-point x bottom-y)
+       (make-point (+ x width) bottom-y)
+       :ink (let ((underline (lem:attribute-underline attribute)))
+              (if (eq underline t)
+                  (lem-core:attribute-foreground-color attribute)
+                  (or (lem:parse-color underline)
+                      (lem-core:attribute-foreground-color attribute))))))
+    width))
 
 (defmethod draw-object ((drawing-object icon-object) x bottom-y medium view)
   ())
@@ -165,29 +162,32 @@
   ())
 
 (defmethod draw-object ((drawing-object eol-cursor-object) x bottom-y medium view)
-  (with-drawing-options (medium :ink (eol-cursor-object-color drawing-object))
-
+;;  0)
+  ;;(with-drawing-options (medium :ink (eol-cursor-object-color drawing-object))
+;;
     ;;add display arg?? view arg??
-    (let ((y (- bottom-y (object-height drawing-object medium)))) 
-      ;;(view:set-cursor-position view x y)
-      (draw-rectangle 
-       medium 
-       (make-point x y)
-       (make-point (text-width medium) 
-             (object-height drawing-object medium))
-       :fill t))
-  (object-width drawing-object medium)))
+;;    (let ((y (- bottom-y (object-height drawing-object medium)))) 
+;;      ;;(view:set-cursor-position view x y)
+;;      (draw-rectangle 
+;;       medium 
+;;       (make-point x y)
+;;       (make-point (text-width medium) 
+;;                   (object-height drawing-object medium))
+;;       :fill t))
+;;  (object-width drawing-object medium)
+  0)
 
 (defmethod draw-object
     ((drawing-object extend-to-eol-object) x bottom-y medium view)
-  (with-drawing-options (medium :ink (eol-cursor-object-color drawing-object))
-    (draw-rectangle
-     medium
-     (make-point x (- bottom-y (text-height medium)))
-     (make-point (- (lem-if:view-width (lem-core:implementation) view) x)
-                 (text-height medium))
-     :fill t))
-  (object-width drawing-object medium))
+;;  (with-drawing-options (medium :ink (eol-cursor-object-color drawing-object))
+;;    (draw-rectangle
+;;     medium
+;;     (make-point x (- bottom-y (text-height medium)))
+;;     (make-point (- (lem-if:view-width (lem-core:implementation) view) x)
+;;                 (text-height medium))
+;;     :fill t))
+;;  (object-width drawing-object medium)
+ 0 )
 
 (defmethod draw-object
     ((drawing-object line-end-object) x bottom-y medium view)
