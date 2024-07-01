@@ -77,13 +77,6 @@
   (join-ui-thread)
   (kill-editor-thread))
 
-(defun parse-color (color)
-  (let ((pallet (lem:parse-color color)))
-    (make-rgb-color
-     (lem:color-red pallet)
-     (lem:color-green pallet)
-     (lem:color-blue pallet))))
-
 (defmethod lem-if:get-background-color ((implementation clim))
   (frame:background +app-frame+))
 
@@ -91,14 +84,10 @@
   (frame:foreground +app-frame+))
 
 (defmethod lem-if:update-foreground ((implementation clim) color-name)
-  (log:info "update-foreground called with ~a~%" color-name)
-  (setf (frame:foreground +app-frame+) (lem:parse-color color-name))
-  (setf (medium-foreground (display-pane)) (parse-color color-name)))
+  (setf (frame:foreground +app-frame+) (lem:parse-color color-name)))
 
 (defmethod lem-if:update-background ((implementation clim) color-name)
-  (log:info "update-bg called wtih ~a~%" color-name)
-  (setf (frame:background +app-frame+) (lem:parse-color color-name))
-  (setf (medium-background (display-pane)) (parse-color color-name)))
+  (setf (frame:background +app-frame+) (lem:parse-color color-name)))
 
 
 (defmethod lem-if:display-width ((implementation clim))
@@ -144,10 +133,10 @@
   t)
 
 (defmethod lem-if:view-width ((implementation clim) view)
-  (view:view-width view))
+  (* (view:view-width view) (text-width (display-pane))))
 
 (defmethod lem-if:view-height ((implementation clim) view)
-  (view:view-height view))
+  (* (view:view-height view) (text-height (display-pane))))
 
 (defmethod lem-if:object-width ((implementation clim) object)
   (obj:object-width object (display-pane)))

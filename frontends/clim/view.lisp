@@ -104,11 +104,12 @@
      (= (cadr line) y))
    (view-lines buffer-view))
 
-  (log:info "update-line on ~a  @ x:~a y:~a  height:~a with ~a ~% ~a"
-            buffer-view x y height
-            (loop for object in objects
-                  collect (obj:object-text object))
-            (view-lines-list buffer-view)))
+  ;;(log:info "update-line on ~a  @ x:~a y:~a  height:~a with ~a ~% ~a"
+  ;;          buffer-view x y height
+  ;;          (loop for object in objects
+  ;;                collect (obj:object-text object))
+  ;;          (view-lines-list buffer-view))
+  )
 
 
 (defmethod color-line (buffer-view pane x y height)
@@ -123,8 +124,8 @@
    :filled t))
 
 (defun draw-modeline (buffer-view modeline pane)
-  (let ((x0 (view-x buffer-view))
-	(x1 (+ (view-x buffer-view) (* (view-width buffer-view) (text-width pane))))
+  (let ((x0 (* (view-x buffer-view) (text-width pane)))
+	(x1 (* (+ (view-x buffer-view) (view-width buffer-view)) (text-width pane)))
         (y (* (+ (view-y buffer-view) (view-height buffer-view)) (text-height pane))))
 
     (loop for object in (car modeline) ;;draw left objects
@@ -135,33 +136,8 @@
 	  do (incf x1
                    (- (obj:draw-object object (- x1 (obj:object-width object pane)) y pane buffer-view))))))
 
-;;(push (list x y objects height) (view-lines buffer-view))
-(defun draw-view-lines (buffer-view pane)
-  (loop
-    for line in (view-lines buffer-view)
-    do (progn
-	 ;;(color-line buffer-view pane (car line) (nth 1 line) (nth 3 line))
-         ;;(log:info "processing line (cadr line):~a (view-y buffer-view):~a (text-height pane):~a"
-         ;;          (cadr line) (view-y buffer-view) (text-height pane))
-	(loop
-	 :with current-x := (car line)
-	 :with y := (+ (cadr line) (* (view-y buffer-view) (text-height pane)))
-	 :with height := (nth 3 line)
-	 :for object :in (nth 2 line)
-	 :do (progn
-	       (log:info
-		"(draw-object ~a) @ current-x:~a y:~a ~%"
-                (obj:object-text object) current-x (+ y height))
-		   
-	       (incf
-		current-x
-		(obj:draw-object object current-x (+ y height) pane buffer-view))
-               )))))
+(defmethod draw-view (buffer-view pane frame)
 
-(defmethod draw-view (buffer-view pane)
-;;  (log:info "Drawing view[~a] x: ~a y: ~a height: ~a width: ~a ~%~%" 
-;;	    buffer-view (view-x buffer-view) (view-y buffer-view) (view-height buffer-view) (view-width buffer-view))
-    
   (let* ((x0 (* (view-x buffer-view) (text-width pane)))
          (y0 (* (view-y buffer-view) (text-height pane)))
          (x1 (+ x0 (* (view-width buffer-view) (text-width pane))))
@@ -175,9 +151,21 @@
         (draw-modeline buffer-view modeline pane))
     
     (draw-rectangle 
-     pane (make-point x0 y0) (make-point x1 y1) :filled nil :line-thickness 1)
-    
-    (draw-view-lines buffer-view pane)))
+     pane (make-point x0 y0) (make-point x1 y1))
+    ;;draw lines
+    (loop
+      for line in (view-lines buffer-view)
+      do (progn
+           (log:info "drawing line: ~a" (loop for object in (nth 2 line)
+                                              collect (obj:object-text object)))
+           (loop
+           :with current-x := (+ (car line) (* (view-x buffer-view) (text-width pane)))
+           :with y := (+ (cadr line) (* (view-y buffer-view) (text-height pane)))
+           :with height := (nth 3 line)
+           :for object :in (nth 2 line)
+           :do (incf
+                current-x
+                (obj:draw-object object current-x (+ y height) pane buffer-view)))))))
 
 
 

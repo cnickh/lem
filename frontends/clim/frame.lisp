@@ -23,12 +23,8 @@
   ())
 
 (define-application-frame lem ()
-
   ;;State needs to include display (global parameters for displaying)
-  ;; a set of views (contain the a set of charaters to be drawn)
-
-  
-  
+  ;; a set of views (contain the a set of charaters to be drawn) 
   ((%views
     :initform '()
     :accessor views)
@@ -75,10 +71,10 @@
 
 
 (defun compose-display (frame pane)
-    ;;(log:info "composing pane -- ~% have views ~a~%" (length (views frame)))
-
-  ;;loop through views detect change & update
+;;loop through views detect change & update
+  (setf (medium-background pane) (parse-raw-color (background frame)))
+  (setf (medium-foreground pane) (parse-raw-color (foreground frame)))
+  
   (loop for view in (views frame) 
-        do (view:draw-view view pane))
-  ) 
+        do (view:draw-view view pane frame))) 
 

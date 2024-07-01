@@ -2,7 +2,9 @@
   (:use :clim-lisp :clim)
   (:export
    :text-width
-   :text-height))
+   :text-height
+   :parse-color
+   :parse-raw-color))
 
 (in-package :lem-clim/utils)
 
@@ -21,4 +23,17 @@
                (ignore final-y)
                (ignore baseline)
                (ignore width)) height))
+
+(defun parse-color (color)
+  (let ((pallet (lem:parse-color color)))
+    (make-rgb-color
+     (/ (lem:color-red pallet) 255)
+     (/ (lem:color-green pallet) 255)
+     (/ (lem:color-blue pallet) 255))))
+
+(defun parse-raw-color (color)
+  (make-rgb-color
+     (/ (lem:color-red color) 255)
+     (/ (lem:color-green color) 255)
+     (/ (lem:color-blue color) 255)))
 
