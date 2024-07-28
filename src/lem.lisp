@@ -262,6 +262,8 @@ See scripts/build-ncurses.lisp or scripts/build-sdl2.lisp"
                  :info))))
     (t (log:config :off)))
 
+  ;;(log:config :sane :info)
+  
   (log:info "Starting Lem")
 
   (cond (*in-the-editor*
