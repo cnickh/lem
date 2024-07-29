@@ -81,6 +81,8 @@
 
 (defun pointer-motion (event medium)
   (with-pointer-event-bound (event medium)
+;;    (log:info "Have motion char-x:~a char-y:~a x:~a y:~a"
+;;              char-x char-y x y)
    (lem:send-event
       (lambda ()
         (lem:receive-mouse-motion char-x char-y x y *mouse-button*)))))

@@ -60,7 +60,15 @@
                  :height height
                  :use-modeline use-modeline))
 
-(defmethod resize (buffer-view width height)
+(defmethod resize (buffer-view medium width height)
+  (setf (view-lines buffer-view) 
+        (delete-if 
+         (lambda (line) 
+           (>= (cadr line) (* height (text-height medium)))) 
+         (view-lines buffer-view)))
+
+  (log:info "have lines: ~a" (view-lines buffer-view))
+  
   (when (view-use-modeline buffer-view) (incf height))
   (setf (view-width buffer-view) width)
   (setf (view-height buffer-view) height))
@@ -170,15 +178,11 @@
          (x1 (+ x0 (* (view-width buffer-view) (text-width pane))))
          (y1 (+ y0 (* (view-height buffer-view) (text-height pane)))))
     
-   ;; (Log:info "view x:~a y:~a height:~a width:~a ~%"
-   ;;           (round (view-x buffer-view))
-   ;;           (round (view-y buffer-view))
-   ;;           (round (* (view-height buffer-view) (text-height pane)))
-   ;;           (round (* (view-width buffer-view) (text-width pane))))
-    
-    (if modeline
-       (draw-modeline buffer-view modeline pane))
-
+    (log:info "view x:~a y:~a width:~a height:~a ~%"
+              x0
+              y0
+              x1
+              y1)
     
   (draw-rectangle pane (make-point x0 y0) (make-point x1 (- y1 (text-height pane))) 
                   :ink (medium-background pane))
@@ -188,11 +192,12 @@
     (loop
       for line in (view-lines buffer-view)
       do (progn
-         ;;(log:Info "[~a ~a] drawing line: ~a"
-         ;;              x0
-         ;;              (+ (cadr line) y0)
-         ;;              (loop for object in (nth 2 line)
-         ;;                    collect (obj:object-text object)))
+           (log:info "have ~a" line)
+           ;;(log:Info "[~a ~a] drawing line: ~a"
+           ;;          x0
+           ;;          (+ (cadr line) y0)
+           ;;          (loop for object in (nth 2 line)
+           ;;                collect (obj:object-text object)))
          (loop
            :with current-x := x0
            :with y := (+ (cadr line) y0)
@@ -200,4 +205,6 @@
            :for object :in (nth 2 line)
            :do (incf 
                 current-x
-                (obj:draw-object object current-x (+ y height) pane buffer-view)))))))
+                (obj:draw-object object current-x (+ y height) pane buffer-view)))))
+    (if modeline
+        (draw-modeline buffer-view modeline pane))))

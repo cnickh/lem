@@ -37,6 +37,9 @@
 (defmethod object-text ((drawing-object void-object)) "_")
 
 (defmethod object-text ((drawing-object eol-cursor-object)) "@")
+
+(defmethod object-text ((drawing-object extend-to-eol-object)) "eol")
+
 ;;Object Heights
 
 (defmethod object-height ((drawing-object void-object) medium)
@@ -157,7 +160,7 @@
     (when uline nil))
 
   (draw-text medium text (make-point x bottom-y) :align-y :bottom :text-style text-style :ink fg)
-    
+  
   width))
 
 (defmethod draw-object ((drawing-object icon-object) x bottom-y medium view)
@@ -194,15 +197,19 @@
 
 (defmethod draw-object
     ((drawing-object extend-to-eol-object) x bottom-y medium view)
-  (draw-rectangle
-   medium
-   (make-point x bottom-y)
-   (make-point (- (lem-if:view-width (lem-core:implementation) view) x)
-               (- bottom-y (text-height medium)))
-               
-   :filled t
-   :ink (eol-cursor-object-color drawing-object))
-  (object-width drawing-object medium)
+;;  (log:info "painting ex-eol ~a x:~a next-x:~a" 
+;;            (extend-to-eol-object-color drawing-object) x
+;;            (+ (lem-if:view-width (lem-core:implementation) view) x)
+;;            (lem-if:view-width (lem-core:implementation) view))
+;;  (draw-rectangle
+;;   medium
+;;   (make-point x bottom-y)
+;;   (make-point (floor (+ (lem-if:view-width (lem-core:implementation) view) x) 2)
+;;               (- bottom-y (text-height medium)))
+;;               
+;;   :filled t
+;;   :ink (extend-to-eol-object-color drawing-object))
+;;  (object-width drawing-object medium)
   0)
 
 (defmethod draw-object
