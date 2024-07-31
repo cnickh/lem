@@ -123,7 +123,7 @@
 (defun key-press (event)
   (let ((sym (convert-to-sym event))
         (modifier (event-modifier-state event)))
-    ;;(log:info "have sym: ~a ~%" sym)
+    (log:info "have sym: ~a ~%" sym)
     (when sym 
       (lem:send-event 
        (lem:make-key :shift (bool-and modifier 256) 

@@ -66,8 +66,7 @@
         :type 'lem-stream-pane
         :scroll-bar nil
         :display-function 'compose-display
-        ;;:incremental-redisplay t ::TODO
-        ))))
+        :incremental-redisplay t))))
 
 (defun enable-resize ()
   (setq +resize+ T))
@@ -108,17 +107,21 @@
 
 (defun compose-display (frame pane)
 ;;loop through views detect change & update
-  ;;(log:info "have views ~a " (views frame))
-
-  (draw-rectangle pane 
-                  (make-point 0 0) 
-                  (make-point (display-width frame) (display-height frame)) 
-                  :ink (parse-raw-color (background frame)))
-  
-  (setf (medium-background pane) (parse-raw-color (background frame)))
-  (setf (medium-foreground pane) (parse-raw-color (foreground frame)))
-  
-  (loop for view 
-        in (views frame) 
-        do (view:draw-view view pane frame)))
+  (log:info "have views ~a " (views frame))
+  (handler-case
+      (progn
+        (draw-rectangle pane 
+                        (make-point 0 0) 
+                        (make-point (display-width frame) (display-height frame)) 
+                        :ink (parse-raw-color (background frame)))
+        
+        (setf (medium-background pane) (parse-raw-color (background frame)))
+        (setf (medium-foreground pane) (parse-raw-color (foreground frame)))
+        
+        (loop for view 
+              in (views frame) 
+              do (updating-output (pane :cache-value view :cache-test 'view:view-cmp)
+                   (view:draw-view view pane (display-width frame) (display-height frame)))))
+  (error (e)
+         (log:info "ERR got ~a" e))))
 

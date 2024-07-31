@@ -7,6 +7,7 @@
                (:file "resource")
                (:file "utils")
                (:file "object")
+               (:file "image-buffer")
                (:file "view")
                (:file "input")
                (:file "frame")

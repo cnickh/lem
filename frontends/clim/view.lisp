@@ -1,5 +1,5 @@
 (defpackage :lem-clim/view
-  (:use :clim-lisp :clim :lem-clim/utils)
+  (:use :clim-lisp :clim :lem-clim/image-buffer :lem-clim/utils :lem-core/display)
   (:local-nicknames
    (:obj :lem-clim/object))
   (:export
@@ -14,7 +14,8 @@
    :draw-view
    :update-line
    :view-lines
-   :move-position))
+   :move-position
+   :view-cmp))
 
 (in-package :lem-clim/view)
 
@@ -67,8 +68,6 @@
            (>= (cadr line) (* height (text-height medium)))) 
          (view-lines buffer-view)))
 
-  (log:info "have lines: ~a" (view-lines buffer-view))
-  
   (when (view-use-modeline buffer-view) (incf height))
   (setf (view-width buffer-view) width)
   (setf (view-height buffer-view) height))
@@ -128,24 +127,58 @@
           do (when (< x0 (- x1 (obj:object-width object pane))) (incf x1
                    (- (obj:draw-object object (- x1 (obj:object-width object pane)) y pane buffer-view)))))))
 
+
+(defun attrib-cmp (a b)
+  (log:info "attrib-cmp ~a ~a" a b)
+    (if (and a b)
+        (and
+         (eq  (lem-core:attribute-background a) (lem-core:attribute-background b))
+         (eq  (lem-core:attribute-underline a) (lem-core:attribute-underline b))
+         (eq (lem-core:attribute-foreground a)  (lem-core:attribute-foreground b))
+         (eq (lem-core:attribute-bold a) (lem-core:attribute-bold b)))
+        nil))
+
+(defun obj-cmp (a b)
+  (log:info "obj-cmp")
+  (if (eq (type-of a) (type-of b))
+      (if (typep a 'text-object)
+          (and 
+           (string= (text-object-string a) (text-object-string b))
+           (attrib-cmp (text-object-attribute a) (text-object-attribute b)))
+          t)
+      nil))
+
 (defun line-cmp (a b)
-  (if (= (length a) (length b))
-      (loop for obj-a in a
-            for obj-b in b
-            do (when 
-                   (not (string= (obj:object-text obj-a) (obj:object-text obj-b))) 
-                 (return-from line-cmp NIL))) NIL) T)
+  (log:info "line-cmp ~a ~a" a b)
+  (handler-case 
+  (progn
+    (if (= (length a) (length b))
+        (loop for obj-a in a
+              for obj-b in b
+              do (when 
+                     (not (obj-cmp obj-a obj-b))) 
+                 (return-from line-cmp NIL)) NIL) T)
+  (error (e) (log:info "ERR in line-cmp ~a" e))))
+(defun view-cmp (a b)
+  (loop for line-a in (view-lines a)
+        for line-b in (view-lines b)
+        do (unless (line-cmp line-a line-b)
+               (return-from view-cmp nil))) t)
 
 (defun modeline-cmp (a b)
+  (log:info "modeline-cmp")
   (let ((res
           (and (line-cmp (car a) (car b)) (line-cmp (cadr a) (cadr b)))))
 
-;;    (log:info 
-;;     "modeline-cmp result: ~a ~% mode-a: (left:~a right:~a) ~% mode-b:(left:~a right:~a) "
-;;     res (car a) (cadr a) (car b) (cadr b))
+    (log:info 
+     "modeline-cmp result: ~a ~% mode-a: (left:~a right:~a) ~% mode-b:(left:~a right:~a) "
+     res (car a) (cadr a) (car b) (cadr b))
     
     res))
 
+(defun id-cmp (a b)
+  (log:info "ids ~a ~a" a b)
+  (and (= (car a) (car b)) (= (cdr a) (cdr b))))
 
 (defmethod draw-window-bg (pane x0 y0 x1 y1 (window lem:floating-window))
   (when (and (lem:floating-window-border window)
@@ -171,40 +204,57 @@
        :line-thickness (floor width 3)
        :ink (parse-raw-color (lem-core:attribute-foreground-color attrib))))))
 
-(defmethod draw-view (buffer-view pane frame)
+(defmethod draw-view (buffer-view pane display-width display-height)
+  (handler-case
   (let* ((modeline (view-modeline buffer-view))
          (x0 (* (view-x buffer-view) (text-width pane)))
          (y0 (* (view-y buffer-view) (text-height pane)))
          (x1 (+ x0 (* (view-width buffer-view) (text-width pane))))
-         (y1 (+ y0 (* (view-height buffer-view) (text-height pane)))))
+         (y1 (+ y0 (* (view-height buffer-view) (text-height pane))))
+         (buffer (lem:window-buffer (view-window buffer-view))))
     
     (log:info "view x:~a y:~a width:~a height:~a ~%"
               x0
               y0
               x1
               y1)
+
+    ;;(log:info "drawing buffer of type ~a " (lem:window-buffer (view-window buffer-view)))
     
-  (draw-rectangle pane (make-point x0 y0) (make-point x1 (- y1 (text-height pane))) 
-                  :ink (medium-background pane))
-  (draw-window-bg pane x0 y0 x1 y1 (view-window buffer-view))
+    (draw-rectangle pane (make-point x0 y0) (make-point x1 (- y1 (text-height pane))) 
+                    :ink (medium-background pane))
+    (draw-window-bg pane x0 y0 x1 y1 (view-window buffer-view))
   
     ;;draw lines
-    (loop
-      for line in (view-lines buffer-view)
-      do (progn
-           (log:info "have ~a" line)
-           ;;(log:Info "[~a ~a] drawing line: ~a"
-           ;;          x0
-           ;;          (+ (cadr line) y0)
-           ;;          (loop for object in (nth 2 line)
-           ;;                collect (obj:object-text object)))
-         (loop
-           :with current-x := x0
-           :with y := (+ (cadr line) y0)
-           :with height := (nth 3 line)
-           :for object :in (nth 2 line)
-           :do (incf 
-                current-x
-                (obj:draw-object object current-x (+ y height) pane buffer-view)))))
+    (handler-case 
+        (if (typep buffer 'image-buffer)
+            ;;(updating-output (pane);; :cache-value buffer)
+            (render buffer pane x0 y0 display-width display-height)
+            ;;)
+            (loop
+              for line in (view-lines buffer-view)
+              do (progn
+           ;;(log:info "have ~a" line)
+                   (log:Info "[~a ~a] drawing line: ~a"
+                             x0
+                             (+ (cadr line) y0)
+                             (loop for object in (nth 2 line)
+                                   collect (obj:object-text object)))
+                   (updating-output (pane :unique-id (cons x0 (+ (cadr line) y0)) :id-test 'id-cmp :cache-value line :cache-test 'line-cmp)
+                     (loop
+                       :with current-x := x0
+                       :with y := (+ (cadr line) y0)
+                       :with height := (nth 3 line)
+                       :for object :in (nth 2 line)
+                       :do (incf 
+                            current-x
+                            (obj:draw-object object current-x (+ y height) pane buffer-view)))))))
+      (error (e)
+        (log:info "ERR draw-line got error ~a" e)))
+    
     (if modeline
-        (draw-modeline buffer-view modeline pane))))
+        (updating-output (pane :unique-id (cons x0 y1) :id-test 'id-cmp :cache-value modeline :cache-test 'modeline-cmp)
+         (draw-modeline buffer-view modeline pane))))
+    
+    (error (e)
+      (log:info "ERR caught in draw-view ~a" e))))

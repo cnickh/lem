@@ -41,7 +41,7 @@
   
   (bt:make-thread
    (lambda () 
-     (run-frame-top-level +app-frame+)) 
+     (run-frame-top-level +app-frame+))
    :name "ui-thread")
 
   (sleep .5)
@@ -59,11 +59,10 @@
    (text-width (display-pane)))
   
   (funcall function)
-
-  (frame:enable-resize))
-  ;;(join-ui-thread)
-  ;;(frame:disable-resize)
-  ;;(kill-editor-thread))
+  (frame:enable-resize)
+  (join-ui-thread)
+  (frame:disable-resize)
+  (kill-editor-thread))
 
 
 (defmethod lem-if:get-background-color ((implementation clim))
@@ -106,7 +105,7 @@
     new-view))
   
 (defmethod lem-if:delete-view ((implementation clim) view)
-  ;;(log:info "delete ~a from ~a ~%" view (current-views))
+  (log:info "delete ~a from ~a ~%" view (current-views))
   (setf (current-views) (delete-if (lambda (v) (equal view v)) (current-views)))
   (when (= (length (current-views)) 0) 
     (destroy-frame +app-frame+)))
@@ -115,7 +114,7 @@
   nil)
 
 (defmethod lem-if:set-view-size ((implementation clim) view width height)
-  (log:info "@~a (set-view-size ~a ~a) ~%"  view width height)
+  ;;(log:info "@~a (set-view-size ~a ~a) ~%"  view width height)
   (view:resize view (display-pane) width height))
 
 (defmethod lem-if:set-view-pos ((implementation clim) view x y)
@@ -138,7 +137,7 @@
   (obj:object-height object (display-pane)))
 
 (defmethod lem-if:render-line ((implementation clim) view x y objects height)
-  (log:info "(render-line y:~a) on @~a" y view)
+  ;;(log:info "(render-line y:~a) on @~a" y view)
   (view:update-line view x y objects height))
 
 (defmethod lem-if:clear-to-end-of-window ((implementation clim) view y)

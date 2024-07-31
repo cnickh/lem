@@ -51,7 +51,8 @@
         (multiple-value-setq (external-format end-of-line)
           (funcall *external-format-function* filename))
         (setf external-format :utf-8)))
-  (let* ((encoding (encoding external-format end-of-line))
+
+ (let* ((encoding (encoding external-format end-of-line))
          (use-internal-p (typep encoding 'internal-encoding)))
     (with-point ((point point :left-inserting))
       (with-open-virtual-file (stream filename
@@ -59,7 +60,7 @@
                                                       '(unsigned-byte 8))
                                       :external-format (and use-internal-p external-format)
                                       :direction :input)
-        (if use-internal-p
+       (if use-internal-p
             (%encoding-read encoding point stream filename)
             (encoding-read encoding
                            stream

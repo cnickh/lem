@@ -223,5 +223,5 @@
                     view))
 
 (defmethod draw-object ((drawing-object image-object) x bottom-y medium view)
-  (log:info "draw image-object ~a" (image-objcet-image drawing-object))
+  ;;(log:info "draw image-object ~a" (image-object-image drawing-object))
   0)
