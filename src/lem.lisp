@@ -44,6 +44,7 @@ Options:
     (setup-frame frame (primordial-buffer))))
 
 (defclass lem-timer-manager (timer-manager) ())
+
 (defmethod send-timer-notification ((lem-timer-manager timer-manager) continue)
   (send-event (lambda ()
                 (funcall continue)

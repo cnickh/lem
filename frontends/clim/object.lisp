@@ -31,6 +31,13 @@
 
 (defgeneric object-text (drawing-object))
 
+(defmethod draw-object :around (drawing-object x bottom-y medium view)
+  (handler-case
+      (call-next-method)
+      (error (e)
+        (log:info "drawing ~a have ERR ~a" drawing-object e)
+        0)))
+
 (defmethod object-text ((drawing-object text-object))
   (text-object-string drawing-object))
 
@@ -133,35 +140,34 @@
 
 (defmethod draw-object ((drawing-object text-object) x bottom-y medium view)
   ;;(log:info "txt:~a attrib:~a" (object-text drawing-object) (text-object-attribute drawing-object))
+  
   (let* ((text (text-object-string drawing-object))
          (attrib (text-object-attribute drawing-object))
          (width (object-width drawing-object medium))	 
-	 (bg nil) 
+         (bg nil) 
 	 (uline nil)
 	 (fg (medium-foreground medium))
-	 (text-style *default-text-style*))
+         (text-style *default-text-style*))
     ;;    (log:info "width:~a bg:~a fg:~a tStyle:~a" width bg fg text-style)
 
-  (when attrib
-    (setq bg (parse-color (lem-core:attribute-background attrib)))
-    (setq uline (lem-core:attribute-underline attrib))
-    (when (lem-core:attribute-foreground attrib) (setq fg (parse-color (lem-core:attribute-foreground attrib))))
-    (when (lem-core:attribute-bold attrib) 
-      (setq text-style (make-text-style (text-style-family *default-text-style*) :bold (text-style-size *default-text-style*))))
-
-    (when bg
-      (draw-rectangle
-       medium
-       (make-point x bottom-y)
-       (make-point (+ x width)
-                   (- bottom-y (text-height medium)))
-       :ink bg))
-
-    (when uline nil))
-
-  (draw-text medium text (make-point x bottom-y) :align-y :bottom :text-style text-style :ink fg)
-  
-  width))
+    (when attrib
+      (setq bg (parse-color (lem-core:attribute-background attrib)))
+      (setq uline (lem-core:attribute-underline attrib))
+      (when (lem-core:attribute-foreground attrib) (setq fg (parse-color (lem-core:attribute-foreground attrib))))
+      (when (lem-core:attribute-bold attrib) 
+        (setq text-style (make-text-style (text-style-family *default-text-style*) :bold (text-style-size *default-text-style*))))
+          
+      (when bg
+        (draw-rectangle
+         medium
+         (make-point x bottom-y)
+         (make-point (+ x width)
+                     (- bottom-y (text-height medium)))
+         :ink bg))
+      (when uline nil))
+    
+    (draw-text medium text (make-point x bottom-y) :align-y :bottom :text-style text-style :ink fg)
+    width))
 
 (defmethod draw-object ((drawing-object icon-object) x bottom-y medium view)
   (log:info "draw icon-object stirng:~a attrib:~a " (text-object-string drawing-object) (text-object-atrribute drawing-object))
@@ -209,7 +215,7 @@
 ;;               
 ;;   :filled t
 ;;   :ink (extend-to-eol-object-color drawing-object))
-;;  (object-width drawing-object medium)
+;;  (object-width drawing-object medium))
   0)
 
 (defmethod draw-object
