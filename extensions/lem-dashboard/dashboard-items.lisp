@@ -117,7 +117,7 @@
                (left-padding (floor (- (window-width (current-window)) max-length) 2)))
           (loop for project in display-projects
                 do (let ((line-start (copy-point point :temporary)))
-                     (insert-string point (str:fit left-padding " "))
+                     ;;(insert-string point (str:fit left-padding " "))
                      (insert-string point (format nil "~A~%" project))
                      (put-text-property line-start point :project-path project))))))))
 
@@ -154,6 +154,6 @@
                (left-padding (floor (- (window-width (current-window)) max-length) 2)))
           (loop for file in display-files
                 do (let ((line-start (copy-point point :temporary)))
-                     (insert-string point (str:fit left-padding " "))
+                     ;;(insert-string point (str:fit left-padding " "))
                      (insert-string point (format nil "~A~%" file))
                      (put-text-property line-start point :file-path file))))))))
