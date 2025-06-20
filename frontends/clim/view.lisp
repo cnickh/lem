@@ -91,8 +91,7 @@
                  :use-modeline use-modeline))
 
 (defmethod resize (buffer-view medium width height)
-  ;;(bt:with-lock-held ((view-lock buffer-view))
-    (setf (view-lines buffer-view) 
+  (setf (view-lines buffer-view) 
           (delete-if 
            (lambda (line) 
              (>= (cadr line) (* height (text-height medium))))
@@ -102,14 +101,13 @@
   (setf (view-width buffer-view) width)
   (setf (view-height buffer-view) height)
   (update-size buffer-view)
-  (enable-redisplay buffer-view));;)
+  (enable-redisplay buffer-view))
 
 (defmethod move-position (buffer-view x y)
-  ;;(bt:with-lock-held ((view-lock buffer-view))
   (setf (view-x buffer-view) x
         (view-y buffer-view) y)
   (update-size buffer-view)
-  (enable-redisplay buffer-view));;)
+  (enable-redisplay buffer-view))
 
 (defmacro replace-add-if (val pred list)
   `(let* ((new_item ,val)
@@ -126,7 +124,6 @@
 (defvar temp-height nil)
 
 (defmethod update-line (buffer-view x y objects height)
-  ;;(bt:with-lock-held ((view-lock buffer-view))
   (unless temp-height
     (log:info "setting height ~a" height)
     (setf temp-height height))
@@ -141,18 +138,14 @@
               (round (cadr line) height) 
               (round y height)))
            (view-lines buffer-view))
-      ;;(log:info "line added/changed ~a " (view-lines buffer-view))
-      (enable-redisplay buffer-view)));;)
+      (enable-redisplay buffer-view)))
 
 (defmethod update-modeline (buffer-view left-objects right-objects default-attribute height)
-  ;;(bt:with-lock-held ((view-lock buffer-view))
-    (let ((modeline (list left-objects right-objects default-attribute height 0)))
-      ;;(when (not (modeline-cmp modeline (view-modeline buffer-view)))
-        ;;(log:info "modeline set")
-        (when (view-modeline buffer-view)
+  (let ((modeline (list left-objects right-objects default-attribute height 0)))
+      (when (view-modeline buffer-view)
           (setf (nth 4 modeline) (incf (nth 4 (view-modeline buffer-view)))))
         (setf (view-modeline buffer-view) modeline)
-        (enable-redisplay buffer-view)));;);;)
+        (enable-redisplay buffer-view)))
 
 (defmethod clear-after (buffer-view y)
   ;;(bt:with-lock-held ((view-lock buffer-view))
@@ -191,7 +184,7 @@
     (loop for object in (car modeline) ;;draw left objects
           do (incf x0
                       (obj:draw-object object x0 y pane buffer-view)))
-;;
+
     (loop for object in (cadr modeline) ;;draw right objects
           do (when (< x0 (- x1 (obj:object-width object pane))) (incf x1
                    (- (obj:draw-object object (- x1 (obj:object-width object pane)) y pane buffer-view)))))))
@@ -224,9 +217,7 @@
 
 (defmethod draw-view (buffer-view pane display-width display-height)
   (handler-case
-      ;;(bt:with-lock-held ((view-lock buffer-view))
-        ;;(updating-output (pane :unique-id (view-id buffer-view) :cache-value (redisplayp buffer-view))
-          (let* ((modeline (view-modeline buffer-view))
+        (let* ((modeline (view-modeline buffer-view))
                  (x0 (* (view-x buffer-view) (text-width pane)))
                  (y0 (* (view-y buffer-view) (text-height pane)))
                  (x1 (+ x0 (* (view-width buffer-view) (text-width pane))))
@@ -236,23 +227,19 @@
         (log:info "draw-view ~% id:~a redisplay val:~a x0 ~a y0 ~a x1 ~a y1 ~a ~% lines::~a" 
                   (view-id buffer-view) (redisplayp buffer-view) x0 y0 x1 y1 (view-lines buffer-view))
 
-            ;;(updating-output (pane :cache-value (size-cache buffer-view))
-              (draw-rectangle pane (make-point x0 y0) (make-point x1 (- y1 (text-height pane))) 
-                              :ink (medium-background pane))
+            (draw-rectangle pane (make-point x0 y0) (make-point x1 (- y1 (text-height pane))) 
+                            :ink (medium-background pane))
     
-              (draw-window-bg pane x0 y0 x1 y1 (view-window buffer-view));;)
+            (draw-window-bg pane x0 y0 x1 y1 (view-window buffer-view))
   
-    ;;draw lines
+            ;;draw lines
             (handler-case 
                 (if (typep buffer 'image-buffer)
                     (render buffer pane x0 y0 display-width display-height)
                     (loop
                       for line in (view-lines buffer-view)
-                      do (progn ;;(log:info "line ~a ~a" (cadr line) (nth 4 line))
-                           ;;(updating-output (pane :unique-id (cons (cadr line) (view-id buffer-view)) 
-                           ;;                       :id-test 'equal 
-                           ;;                       :cache-value (nth 4 line))
-                           (log:info "view ~a line ~a ~a ~%" 
+                      do (progn 
+                           (log:info "view ~a line ~a ~a ~%"
                                      (view-id buffer-view) (floor (cadr line) (text-height pane)) line)
                              (loop
                                :with current-x := x0
@@ -260,13 +247,12 @@
                                :with height := (nth 3 line)
                                :for object :in (nth 2 line)
                                :do (incf current-x
-                                         (obj:draw-object object current-x (+ y height) pane buffer-view))))));;)
+                                         (obj:draw-object object current-x (+ y height) pane buffer-view))))))
               (error (e)
                 (log:info "ERR draw-line got error ~a" e)))
             
             (if modeline
-                ;;(updating-output (pane :cache-value (nth 4 modeline))
-                  (draw-modeline buffer-view modeline pane)));;));;)
+                  (draw-modeline buffer-view modeline pane)))
     
     (error (e)
       (log:info "ERR caught in draw-view ~a" e))))

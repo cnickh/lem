@@ -102,20 +102,17 @@
       (log:info "resize called ~a h:~a w:~a" rect height width)
       (lem:send-event
        (lambda ()
-         ;;(bt:with-recursive-lock-held (frame-lock)
-           (when (<= +display-height+ height)
-             (setf (display-height frame) height)
-             (setf (display-char-height frame) (floor height (text-height pane))))
+         (when (<= +display-height+ height)
+           (setf (display-height frame) height)
+           (setf (display-char-height frame) (floor height (text-height pane))))
            
-           (when (<= +display-width+ width) 
-             (setf (display-width frame) width)
-             (setf (display-char-width frame) (floor width (text-width pane))))
+         (when (<= +display-width+ width) 
+           (setf (display-width frame) width)
+           (setf (display-char-width frame) (floor width (text-width pane))))
            
-           ;;(log:info "passing control to lem")
-           (lem:update-on-display-resized)))));;)
+         (lem:update-on-display-resized)))))
 
 (defmethod handle-event :around ((stream pane) event)
-  ;;(log:info "event ~a ~%" (event-type event))
   (unless (typep event 'character)
     (case (event-type event)
      (:window-configuration (resize-app-frame stream event))
@@ -126,29 +123,23 @@
      (:pointer-button-release (input:pointer-release event stream))
      (:key-press (input:key-press event))))
 
-  ;;(unless (eq :execute-command (event-type event))
-  ;;  (execute-frame-command *application-frame* '(com-redisplay)))
-
   (call-next-method))
 
 (defun compose-display (frame pane)
   ;;loop through views detect change & update
-  ;;(log:info "have views ~a " (views frame))
   (handler-case
-     ;;(bt:with-recursive-lock-held (frame-lock)
-        (progn
-          ;;(log:info "Running on ~a" (bt:current-thread))
-          (draw-rectangle pane
-                          (make-point 0 0) 
-                          (make-point (display-width frame) (display-height frame)) 
-                          :ink (parse-raw-color (background frame)))
+      (progn
+        (draw-rectangle pane
+                        (make-point 0 0) 
+                        (make-point (display-width frame) (display-height frame)) 
+                        :ink (parse-raw-color (background frame)))
         
-          (setf (medium-background pane) (parse-raw-color (background frame)))
-          (setf (medium-foreground pane) (parse-raw-color (foreground frame)))
+        (setf (medium-background pane) (parse-raw-color (background frame)))
+        (setf (medium-foreground pane) (parse-raw-color (foreground frame)))
         
-          (loop for view 
-                in (views frame) 
-                do (view:draw-view view pane (display-width frame) (display-height frame))));;)
+        (loop for view 
+              in (views frame) 
+              do (view:draw-view view pane (display-width frame) (display-height frame))))
     (error (e)
       (log:info "ERR got ~a" e))))
 
