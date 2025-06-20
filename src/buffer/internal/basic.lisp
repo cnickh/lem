@@ -121,7 +121,7 @@ If there is no line at the 'n' destination, the position of 'point' is left as i
            (decf n (1+ charpos))))))
 
 (defun character-offset (point n)
-  "If 'point' is a positive number, move it later. If it is a negative number, move it forward. Return the moved 'point'.
+  "If 'n' is a positive number, move it forward. If it is a negative number, move it backward. Return the moved 'point'.
 If the 'n' character is beyond the buffer, the position of 'point' is left as it is and NIL is returned."
   (%character-offset point n
                      (lambda (linum line charpos)
@@ -442,7 +442,7 @@ If 'line-number' is out of the buffer, 'point' does not move and returns NIL."
 (defun set-current-mark (point)
   "Set 'point' to the current mark."
   (let ((buffer (point-buffer point)))
-    (mark-set-point (buffer-mark-object buffer) point))
+    (setf (buffer-mark buffer) point))
   point)
 
 (defun blank-line-p (point)
@@ -480,7 +480,7 @@ If 'test' is a function, it takes one character at that position as an argument 
   (skip-chars-internal point test t))
 
 (defun skip-chars-backward (point test)
-  "Move the character before the position from 'point' to the previous direction while non-NIL by evaluating it with "test".
+  "Move the character before the position from 'point' to the previous direction while non-NIL by evaluating it with \"test\".
 If 'test' is a list of characters, is the character before that position in the list of 'test'?
 If 'test' is a function, it takes one of the characters before its position as its argument and returns non-NIL."
   ;; `point`からその位置の前の文字を`test`で評価して非NILの間、前の方向に移動します。

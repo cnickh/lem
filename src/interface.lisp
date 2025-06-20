@@ -54,6 +54,10 @@
 (defgeneric lem-if:set-display-title (implementation title))
 (defgeneric lem-if:display-fullscreen-p (implementation))
 (defgeneric lem-if:set-display-fullscreen-p (implementation fullscreen-p))
+(defgeneric lem-if:maximize-frame (implementation)
+  (:method (implementation)))
+(defgeneric lem-if:minimize-frame (implementation)
+  (:method (implementation)))
 (defgeneric lem-if:make-view (implementation window x y width height use-modeline))
 (defgeneric lem-if:view-width (implementation view))
 (defgeneric lem-if:view-height (implementation view))
@@ -116,6 +120,11 @@
 (defgeneric lem-if:object-width (implementation drawing-object))
 (defgeneric lem-if:object-height (implementation drawing-object))
 (defgeneric lem-if:clear-to-end-of-window (implementation view y))
+
+(defgeneric lem-if:js-eval (implementation view code &key wait)
+  (:method (implementation view code &key wait)
+    (declare (ignore wait))
+    (error "unimplemented")))
 
 (defvar *display-background-mode* nil)
 

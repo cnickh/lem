@@ -152,15 +152,15 @@
            (sdl2:with-window (window :title "Lem"
                                      :w window-width
                                      :h window-height
-                                     :flags '(:shown :resizable #+darwin :allow-highdpi))
+                                     :flags '(:shown :resizable :allow-highdpi))
              (init-application-icon window)
              (sdl2:with-renderer (renderer window :index -1 :flags '(:accelerated))
-               (let* (#+darwin (renderer-size (multiple-value-list
+               (let* ((renderer-size (multiple-value-list
                                                (sdl2:get-renderer-output-size renderer)))
-                      #+darwin (renderer-width (first renderer-size))
-                      #+darwin(renderer-height (second renderer-size))
-                      (scale-x #-darwin 1 #+darwin (/ renderer-width window-width))
-                      (scale-y #-darwin 1 #+darwin (/ renderer-height window-height))
+                      (renderer-width (first renderer-size))
+                      (renderer-height (second renderer-size))
+                      (scale-x (/ renderer-width window-width))
+                      (scale-y (/ renderer-height window-height))
                       (texture (lem-sdl2/utils:create-texture renderer
                                                               (* scale-x window-width)
                                                               (* scale-y window-height)))
@@ -174,7 +174,6 @@
                                               :char-height (font-char-height font)
                                               :scale (list scale-x scale-y))))
                  (setf (display:current-display) display)
-                 #+darwin
                  (display:adapt-high-dpi-font-size display)
                  (sdl2:start-text-input)
                  (funcall function)
@@ -210,6 +209,9 @@
                      (if (lem:config :darwin-use-native-fullscreen) 1 0))
       ;; sdl2 should not install any signal handlers, since the lisp runtime already does so
       (sdl2:set-hint :no-signal-handlers 1)
+      ;; sdl2 should not disable the kwin compositor, since lem editor is not a game, and disable it will not bring noticeale performance improvement.
+      (sdl2:set-hint :video-x11-net-wm-bypass-compositor 0)
+
       (tmt:with-body-in-main-thread ()
         (sdl2:make-this-thread-main (lambda ()
                                       (handler-bind
@@ -289,6 +291,18 @@
           ;; always send :desktop over :fullscreen due to weird bugs on macOS
           (sdl2:set-window-fullscreen (display:display-window display)
                                       (if fullscreen-p :desktop)))))))
+
+(defmethod lem-if:maximize-frame ((implementation sdl2))
+  (with-debug ("lem-if:maximize-frame")
+    (sdl2:in-main-thread ()
+      (display:with-display (display)
+        (sdl2:maximize-window (lem-sdl2/display::display-window display))))))
+
+(defmethod lem-if:minimize-frame ((implementation sdl2))
+  (with-debug ("lem-if:minimize-frame")
+    (sdl2:in-main-thread ()
+      (display:with-display (display)
+        (sdl2:minimize-window (lem-sdl2/display::display-window display))))))
 
 (defmethod lem-if:make-view ((implementation sdl2) window x y width height use-modeline)
   (with-debug ("lem-if:make-view" window x y width height use-modeline)
@@ -457,7 +471,7 @@
   (lem-sdl2/log:with-debug ("clipboard-paste")
     (display:with-display (display)
       (display:with-renderer (display)
-        (sdl2-ffi.functions:sdl-get-clipboard-text)))))
+        (multiple-value-bind (str _) (sdl2-ffi.functions:sdl-get-clipboard-text) str)))))
 
 #+windows
 (defmethod lem-if:clipboard-paste ((implementation sdl2))

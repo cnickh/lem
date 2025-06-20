@@ -170,10 +170,15 @@
   "Kill the text of region."
   (when (point< end start)
     (rotatef start end))
-  (let ((repeat-command (continue-flag :kill)))
-    (let ((killed-string (delete-character start (count-characters start end))))
-      (with-killring-context (:appending repeat-command)
-        (copy-to-clipboard-with-killring killed-string)))))
+  (let ((repeat-command (continue-flag :kill))
+        (killed-string (delete-character start (count-characters start end))))
+    (with-killring-context (:appending repeat-command)
+      (when (and (not repeat-command)
+                 (enable-clipboard-p))
+        (let ((clipboard-string (get-clipboard-data)))
+          (unless (string= clipboard-string (peek-killring-item (current-killring) 0))
+            (push-killring-item (current-killring) clipboard-string))))
+      (copy-to-clipboard-with-killring killed-string))))
 
 (define-command kill-region-to-clipboard (start end) (:region)
   "Kill the text of region and copy to the clipboard."
@@ -212,24 +217,34 @@
            (let ((end (current-point)))
              (kill-region start end))))))))
 
-(define-command kill-whole-line () ()
-  "Kill the entire line and the remaining whitespace"
-   (with-point ((start (current-point))
-                (end (current-point)))
-     (line-end end)
-     (kill-region start end))
-   (delete-previous-char))
+(define-command kill-whole-line (&optional (n 1)) (:universal)
+  "If n is positive, kill n whole lines forward starting at the
+beginning of the current line.  If n is 0, do nothing.  And if n
+is negative, kill n lines above without deleting anything on the
+current line."
+  (cond ((zerop n) nil)
+        ((minusp n) (save-excursion
+                      (move-to-beginning-of-logical-line)
+                      (kill-line n)))
+        (t (progn (move-to-beginning-of-logical-line)
+                  (kill-line n)))))
+
+(defun yank-string (point string)
+  (change-yank-start point
+                     (copy-point point :right-inserting))
+  (if (in-string-or-comment-p point)
+      (insert-string point string)
+      (insert-string-and-indent point string))
+  (change-yank-end point
+                   (copy-point point :left-inserting))
+  (continue-flag :yank))
 
 (defun yank-1 (arg)
   (let ((string (if (null arg)
                     (yank-from-clipboard-or-killring)
                     (peek-killring-item (current-killring) (1- arg)))))
-    (change-yank-start (current-point)
-                                 (copy-point (current-point) :right-inserting))
-    (insert-string-and-indent (current-point) string)
-    (change-yank-end (current-point)
-                               (copy-point (current-point) :left-inserting))
-    (continue-flag :yank)))
+    (when string
+      (yank-string (current-point) string))))
 
 (define-command yank (&optional arg) (:universal-nil)
   "Paste the copied text."
@@ -451,3 +466,6 @@
   (with-enable-clipboard (and (enable-clipboard-p)
                               (null (buffer-fake-cursors (current-buffer))))
     (process-each-cursors #'call-next-method)))
+
+(defmethod lem-core:paste-using-mode (mode text)
+  (yank-string (current-point) text))

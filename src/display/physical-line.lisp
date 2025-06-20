@@ -35,6 +35,8 @@
 (defclass eol-cursor-object (drawing-object)
   ((color :initarg :color
           :reader eol-cursor-object-color)
+   (attribute :initarg :attribute
+              :reader eol-cursor-object-attribute)
    (true-cursor-p :initarg :true-cursor-p
                   :initform nil
                   :reader eol-cursor-object-true-cursor-p)))
@@ -130,10 +132,20 @@
                      (:emoji 'emoji-object)
                      (:control 'control-character-object)
                      (otherwise 'text-object))
-                   :string (if (eq type :control)
-                               (control-char (char string 0))
-                               string)
-                   :attribute attribute
+                   :string (case type
+                             (:control
+                              (control-char (char string 0)))
+                             (:zero-width
+                              (make-string (length string) :initial-element #\·))
+                             (otherwise
+                              string))
+                   :attribute (case type
+                                ((:control :zero-width)
+                                 (let ((attr (ensure-attribute 'special-char-attribute nil)))
+                                   (if attribute
+                                       (merge-attribute attribute attr)
+                                       attr)))
+                                (otherwise attribute))
                    :type type
                    :within-cursor (and attribute
                                        (cursor-attribute-p attribute)))))
@@ -141,6 +153,7 @@
 (defun create-drawing-object (item)
   (cond ((and *line-wrap* (typep item 'eol-cursor-item))
          (list (make-instance 'eol-cursor-object
+                              :attribute (eol-cursor-item-attribute item)
                               :color (parse-color
                                       (attribute-background
                                        (eol-cursor-item-attribute item)))
@@ -269,19 +282,14 @@
          (objects-per-physical-line
            (separate-objects-by-width (create-drawing-objects logical-line)
                                       (- (window-view-width window) left-side-width)
-                                      (window-buffer window)))
-         (empty-left-side-object (if (< 0 left-side-width)
-                                     (list (make-object-with-type
-                                            (make-string left-side-characters :initial-element #\space)
-                                            nil
-                                            (char-type #\space)))
-                                     nil)))
+                                      (window-buffer window))))
     (loop :for objects :in objects-per-physical-line
           :for all-objects := (append left-side-objects objects)
           :for height := (max-height-of-objects all-objects)
           :do (render-line-with-caching window 0 y all-objects height)
               (incf y height)
-              (setq left-side-objects (copy-list empty-left-side-object))
+              (setq left-side-objects (copy-list (compute-wrap-left-area-content
+                                                  left-side-width left-side-characters)))
           :sum height)))
 
 (defun find-cursor-object (objects)

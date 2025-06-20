@@ -98,6 +98,7 @@
                (:file "clipboard")
                (:file "save-excursion")
                (:file "killring")
+               (:file "named-point")
                (:file "file")
                (:file "frame")
                (:file "echo")
@@ -133,6 +134,7 @@
                (:file "command-advices")
                (:file "interface")
                (:file "highlight-line")
+               (:file "html-buffer")
                (:file "site-init")
                (:file "lem")
 
@@ -194,7 +196,15 @@
                              (:file "link")
                              (:file "thingatp")
                              (:file "gtags")
-                             (:file "directory-mode")
+                             (:module "directory-mode"
+                              :serial t
+                              :components ((:file "file")
+                                           (:file "attributes")
+                                           (:file "mode")
+                                           (:file "internal")
+                                           (:file "commands")
+                                           (:file "keybinds")
+                                           (:file "main")))
                              (:file "abbrev")
                              (:file "rectangle")
                              (:file "auto-save")
@@ -203,7 +213,12 @@
                              (:file "filer")
                              (:file "deepl")
                              (:file "themes")
-                             (:file "detective")))))
+                             (:file "detective")
+                             (:file "read-only-sources")))
+
+               (:module "ui"
+                :serial t
+                :components ((:file "theme-list")))))
 
 (defsystem "lem/extensions"
   :depends-on (#+sbcl
@@ -248,14 +263,19 @@
                "lem-base16-themes"
                #+sbcl
                "lem-elixir-mode"
+               "lem-ruby-mode"
                "lem-erlang-mode"
                "lem-documentation-mode"
                "lem-elisp-mode"
+               "lem-terraform-mode"
+               "lem-nix-mode"
                "lem-markdown-mode"
                "lem-color-preview"
                "lem-lua-mode"
                "lem-terminal"
-               "lem-legit"))
+               "lem-legit"
+               "lem-dashboard"
+               "lem-copilot"))
 
 (defsystem "lem/executable"
   :build-operation program-op

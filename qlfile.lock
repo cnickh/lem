@@ -1,23 +1,23 @@
 ("quicklisp" .
  (:class qlot/source/dist:source-dist
   :initargs (:distribution "https://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
-  :version "2023-10-21"))
+  :version "2024-10-12"))
+("uiop" .
+ (:class qlot/source/ql:source-ql
+  :initargs (:%version :latest)
+  :version "ql-2024-10-12"))
 ("micros" .
  (:class qlot/source/git:source-git
   :initargs (:remote-url "https://github.com/lem-project/micros.git")
-  :version "git-9fc7f1e5b0dbf1b9218a3f0aca7ed46e90aa86fd"))
+  :version "git-25177e04a946365397a0848a6545399860d310d0"))
 ("lem-mailbox" .
  (:class qlot/source/git:source-git
   :initargs (:remote-url "https://github.com/lem-project/lem-mailbox.git")
   :version "git-12d629541da440fadf771b0225a051ae65fa342a"))
-("lem-base16-themes" .
- (:class qlot/source/git:source-git
-  :initargs (:remote-url "https://github.com/lem-project/lem-base16-themes.git")
-  :version "git-d7ece2372e94bca76bba7bfc5da3d05eaef31265"))
 ("async-process" .
  (:class qlot/source/git:source-git
   :initargs (:remote-url "https://github.com/lem-project/async-process.git")
-  :version "git-9690530fc92b59636d9f17d821afa7697e7c8ca4"))
+  :version "git-3b16b91d417530dac03559980fb5703206e20c55"))
 ("sblint" .
  (:class qlot/source/git:source-git
   :initargs (:remote-url "https://github.com/cxxxr/sblint.git")
@@ -33,7 +33,7 @@
 ("cl-sdl2-ttf" .
  (:class qlot/source/git:source-git
   :initargs (:remote-url "https://github.com/lem-project/cl-sdl2-ttf.git")
-  :version "git-e61bb2119003d8ae7792d38aa11f7728d3ee5a00"))
+  :version "git-f43344efe89cf9ce509e6ce4f7303ebb2ff14434"))
 ("cl-sdl2-image" .
  (:class qlot/source/git:source-git
   :initargs (:remote-url "https://github.com/lem-project/cl-sdl2-image.git")
@@ -41,7 +41,7 @@
 ("jsonrpc" .
  (:class qlot/source/git:source-git
   :initargs (:remote-url "https://github.com/cxxxr/jsonrpc.git")
-  :version "git-62e25f0e0059e57e6ab4abe677e466a76052c439"))
+  :version "git-2af1e0fad429ee8c706b86c4a853248cdd1be933"))
 ("mcclim" .
  (:class qlot/source/git:source-git
   :initargs (:remote-url "https://codeberg.org/McCLIM/McCLIM.git")

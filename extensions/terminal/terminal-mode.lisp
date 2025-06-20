@@ -8,6 +8,10 @@
 (defvar *bypass-commands*
   '(next-window
     previous-window
+    window-move-up
+    window-move-down
+    window-move-left
+    window-move-right
     split-active-window-vertically
     split-active-window-horizontally
     delete-other-windows
@@ -188,6 +192,11 @@
   (alexandria:when-let ((terminal (get-current-terminal))
                         (window (current-window)))
     (resize-terminal terminal window)))
+
+(defmethod lem-core:paste-using-mode ((mode terminal-mode) string)
+  (let ((terminal (get-current-terminal)))
+    (loop :for c :across string
+          :do (terminal:input-character terminal c))))
 
 (defun on-window-size-change (window)
   (alexandria:when-let (terminal (buffer-terminal (window-buffer window)))

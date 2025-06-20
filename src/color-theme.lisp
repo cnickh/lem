@@ -1,5 +1,9 @@
 (in-package :lem-core)
 
+(defvar *after-load-theme-hook* '()
+  "For functions that should run after a theme is loaded,
+for example, to maintain an attribute like CURSOR.")
+
 (defvar *current-theme* nil)
 
 (defun current-theme ()
@@ -96,7 +100,8 @@
     (redraw-display :force t)
     (setf (current-theme) name)
     (when save-theme
-      (setf (config :color-theme) (current-theme)))))
+      (setf (config :color-theme) (current-theme))))
+  (run-hooks *after-load-theme-hook*))
 
 (defun get-color-theme-color (color-theme key)
   (second (assoc key (color-theme-specs color-theme))))
@@ -122,43 +127,6 @@
      (color-to-hex-string color))
     (otherwise
      color)))
-
-(define-major-mode color-theme-selector-mode ()
-    (:name "Themes"
-     :keymap *color-theme-selector-keymap*))
-
-(define-key *color-theme-selector-keymap* "Return" 'color-theme-selector-select)
-
-(define-command color-theme-selector-select () ()
-  (with-point ((point (current-point)))
-    (line-start point)
-    (let ((theme (text-property-at point 'theme)))
-      (load-theme theme))))
-
-(define-command list-color-themes () ()
-  (let* ((buffer (make-buffer "*Color Themes*"))
-         (point (buffer-point buffer))
-         (dark-themes '())
-         (light-themes '()))
-    (with-buffer-read-only buffer nil
-      (erase-buffer buffer)
-      (dolist (name (all-color-themes))
-        (let ((theme (find-color-theme name)))
-          (if (eq :dark (get-color-theme-color theme :display-background-mode))
-              (push (cons name theme) dark-themes)
-              (push (cons name theme) light-themes))))
-      (loop :for (name . theme) :in (append dark-themes light-themes)
-            :do (insert-string
-                 point name
-                 :attribute (make-attribute
-                             :foreground (get-color-theme-color theme :foreground)
-                             :background (get-color-theme-color theme :background))
-                 'theme name)
-                (insert-character point #\newline)))
-    (buffer-start point)
-    (setf (buffer-read-only-p buffer) t)
-    (switch-to-buffer buffer)
-    (change-buffer-mode buffer 'color-theme-selector-mode)))
 
 (defun initialize-color-theme ()
   (load-theme (config :color-theme "lem-default") nil))

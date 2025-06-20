@@ -1,7 +1,6 @@
 DEBUG
 *.fasl
 node_modules
-package-lock.json
 roswell/lem-ncurses
 *~
 
@@ -19,7 +18,6 @@ bin/
 system-index.txt
 
 lem-icon.svg
-lem-ncurses.desktop
 
 .DS_Store
 
@@ -27,7 +25,7 @@ GIT_IGNORE.*
 
 lem
 lem-ncurses
-lem-rpc
+lem-server
 
 *.abcl
 build/*
@@ -35,3 +33,7 @@ build/*
 *.lx64fsl
 .qlot
 /systems/
+
+/result
+
+TODO

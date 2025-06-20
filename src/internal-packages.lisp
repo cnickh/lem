@@ -7,6 +7,7 @@
    :emoji-object
    :eol-cursor-object
    :eol-cursor-object-color
+   :eol-cursor-object-attribute
    :eol-cursor-object-true-cursor-p
    :extend-to-eol-object
    :extend-to-eol-object-color
@@ -93,7 +94,7 @@
    :key-ctrl
    :key-meta
    :key-super
-   :key-hypher
+   :key-hyper
    :key-shift
    :key-sym
    :match-key
@@ -145,6 +146,23 @@
    :syntax-variable-attribute
    :syntax-type-attribute
    :syntax-builtin-attribute
+   :document-header1-attribute
+   :document-header2-attribute
+   :document-header3-attribute
+   :document-header4-attribute
+   :document-header5-attribute
+   :document-header6-attribute
+   :document-bold-attribute
+   :document-italic-attribute
+   :document-underline-attribute
+   :document-link-attribute
+   :document-list-attribute
+   :document-code-block-attribute
+   :document-inline-code-attribute
+   :document-blockquote-attribute
+   :document-table-attribute
+   :document-task-list-attribute
+   :document-metadata-attribute
    :completion-attribute
    :non-focus-completion-attribute
    :attribute-image
@@ -152,7 +170,9 @@
    :attribute-height
    :attribute-font
    :cursor-attribute-p
-   :set-cursor-attribute)
+   :set-cursor-attribute
+   :display-dark-p
+   :display-light-p)
   ;; clipboard.lisp
   (:export
    :wsl-p
@@ -185,6 +205,7 @@
    :frame-prompt-window
    :frame-message-window
    :frame-leftside-window
+   :frame-rightside-window
    :notify-frame-redisplay-required
    :map-frame
    :get-frame
@@ -226,6 +247,7 @@
    :*prompt-deactivate-hook*
    :*prompt-buffer-completion-function*
    :*prompt-file-completion-function*
+   :*prompt-command-completion-function*
    :caller-of-prompt-window
    :prompt-active-p
    :active-prompt-window
@@ -237,6 +259,7 @@
    :prompt-for-buffer
    :prompt-for-file
    :prompt-for-directory
+   :prompt-for-command
    :prompt-for-encodings
    :prompt-for-library)
   ;; buffer.lisp
@@ -253,6 +276,9 @@
    :*window-scroll-functions*
    :*window-size-change-functions*
    :*window-show-buffer-functions*
+   :*switch-to-buffer-hook*
+   :*switch-to-window-hook*
+   :*default-split-action*
    :window-parent
    :scroll
    :window-view-point
@@ -269,6 +295,9 @@
    :window-view
    :window-point
    :window-cursor-invisible-p
+   :show-cursor
+   :hide-cursor
+   :window-buffer-switchable-p
    :set-last-print-cursor
    :last-print-cursor-x
    :last-print-cursor-y
@@ -324,6 +353,7 @@
   ;; virtual-line
   (:export
    :window-recenter
+   :window-recenter-top-bottom
    :window-cursor-x
    :window-cursor-y
    :backward-line-wrap
@@ -341,7 +371,9 @@
    :side-window
    :side-window-p
    :make-leftside-window
-   :delete-leftside-window)
+   :delete-leftside-window
+   :make-rightside-window
+   :delete-rightside-window)
   ;; popup.lisp
   (:export
    :*default-popup-message-timeout*
@@ -420,7 +452,8 @@
    :clear-region-major-mode
    :major-mode-at-point
    :current-major-mode-at-point
-   :with-major-mode)
+   :with-major-mode
+   :paste-using-mode)
   ;; keymap.lisp
   (:export
    :*keymaps*
@@ -432,6 +465,8 @@
    :*global-keymap*
    :define-key
    :define-keys
+   :undefine-key
+   :undefine-keys
    :keyseq-to-string
    :find-keybind
    :insertion-key-p
@@ -465,6 +500,7 @@
    :exit-editor
    :interactive-p
    :continue-flag
+   :nullify-last-flags
    :pop-up-backtrace
    :call-background-job
    :command-loop-counter
@@ -519,9 +555,12 @@
    :completion-hyphen
    :completion-file
    :completion-strings
+   :completion-files
    :completion-buffer)
   ;; cursors.lisp
   (:export
+   :push-buffer-point
+   :pop-buffer-point
    :fake-cursor
    :cursor-saved-column
    :cursor-yank-start
@@ -570,7 +609,11 @@
    :wrap-line-attribute
    :inactive-window-background-color
    :redraw-buffer
-   :compute-left-display-area-content)
+   :compute-left-display-area-content
+   :compute-wrap-left-area-content)
+  ;; display/logical-line.lisp
+  (:export
+    :make-region-overlays-using-global-mode)
   ;; interface.lisp
   (:export
    :with-implementation
@@ -587,18 +630,23 @@
    :attribute-background-color
    :attribute-foreground-with-reverse
    :attribute-background-with-reverse
-   :cursor-type)
+   :cursor-type
+   :display-background-mode)
   ;; color-theme.lisp
   (:export
    :color-theme-names
    :define-color-theme
+   :*after-load-theme-hook*
    :load-theme
    :current-theme
    :find-color-theme
    :color-theme
-   :get-color-theme-color)
+   :get-color-theme-color
+   :foreground-color
+   :background-color)
   ;; region.lisp
   (:export
+   :*region-end-offset*
    :check-marked-using-global-mode
    :region-beginning-using-global-mode
    :region-end-using-global-mode
@@ -610,6 +658,14 @@
    :register-formatter
    :register-formatters
    :format-buffer)
+  ;; html-buffer.lisp
+  (:export
+   :html-buffer
+   :html-buffer-html
+   :make-html-buffer
+   :html-buffer-updated-p
+   :invalidate-html-buffer-updated
+   :js-eval)
   ;; site-init.lisp
   (:export
    :*inits-directory-name*
@@ -647,6 +703,8 @@
    :set-display-title
    :display-fullscreen-p
    :set-display-fullscreen-p
+   :maximize-frame
+   :minimize-frame
    :make-view
    :view-width
    :view-height
@@ -678,6 +736,7 @@
    :get-char-width
    :get-char-height
    :clear-to-end-of-window
+   :js-eval
    :render-line
    :render-line-on-modeline
    :object-width
